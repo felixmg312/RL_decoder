@@ -154,7 +154,7 @@ class Env():
         Update the crossentropy vector and return the sentence state
         """
         #to do: rollout to build up the classifier vector
-        self.vector_state= None
+        self.vector_state= torch.tensor(self.classifier.get_scores(self.input_sentence,self.rollout_simulator()))
         self.sentence_state= self.input_sentence+self.generated_sentence_so_far()
         return self.vector_state,self.sentence_state
     def generated_sentence_so_far(self):
@@ -209,6 +209,9 @@ class Env():
         self.update_state(action)
         next_state= self.get_next_state()
         termination= self.is_termination()
-        reward=None
 #         reward= self.reward.evaluate_reward()
         return next_state,reward,termination
+    
+    def get_reward(self,target,decoded,weight_vec):
+        s = np.array(self.classifier.get_scores(target,decoded))
+        return s.dot(weight_vec)

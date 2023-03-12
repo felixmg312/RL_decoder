@@ -4,6 +4,7 @@ import torch
 from transformers import pipeline
 from transformers.pipelines.pt_utils import KeyDataset
 from transformers import logging
+import numpy as np
 
 class Classifier:
     def __init__(self,path):
@@ -42,8 +43,11 @@ class Classifier:
         return self.pipes[2](sent)
 
     def get_scores(self,target,decoded):
-      scores = []
-      for p in self.pipes:
+    #cross entropy scores between target and decoded = [fluency, sentiment, topic, grammar]
+      fluency_decoded = self.pipes[0](decoded)
+      scores = [-np.log(fluency_decoded[0][0]['score'])]
+      fluency_decoded = self.pipes[0](decoded)
+      for p in self.pipes[1:]:
         target_pred = p(target)[0]
         decoded_pred = p(decoded)[0]
         prob_target = []
@@ -51,11 +55,10 @@ class Classifier:
         for i in range(len(target_pred)):
           prob_target.append(target_pred[i]['score'])
           prob_decoded.append(decoded_pred[i]['score'])
-        scores.append(self.loss(torch.tensor(prob_decoded),torch.tensor(prob_target)).item())
-      
-      grammar_target = self.grammar_pred(target)
+        scores.append(- self.loss(torch.tensor(prob_decoded),torch.tensor(prob_target)).item())
       grammar_decoded = self.grammar_pred(decoded)
-      scores.append(self.loss(grammar_decoded,grammar_target).item())
+      grammar_target = self.grammar_pred(target)
+      scores.append(-np.log(grammar_decoded[0,0].item()))
       return scores
         
 
