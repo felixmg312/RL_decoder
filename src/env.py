@@ -28,7 +28,7 @@ from transformers import logging
 
 
 class Env():
-    def __init__(self,input_sentence,model_name,classifier_vector_length=5):
+    def __init__(self,input_sentence,model_name,classifier,classifier_vector_length=4):
         """
         input_sentence: the input sentence x 
         model_name: the transformer model that we are using
@@ -49,6 +49,7 @@ class Env():
         self.next_state = self.model(self.input_ids, decoder_input_ids= self.decoder_input_ids, return_dict=True)
         self.last_hidden_encoder_state = (self.next_state.encoder_last_hidden_state,) ## the hidden state
         self.eos_token_id = self.model.config.eos_token_id
+        self.classifier = classifier
 
         
         ## Freezing the model
