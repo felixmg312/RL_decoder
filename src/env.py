@@ -8,9 +8,11 @@ from transformers import (
     AutoTokenizer,
 )
 import torch 
-
+import gensim
 import random
-
+from nltk.corpus import stopwords
+from nltk import download
+download('stopwords')
 
 
 
@@ -65,9 +67,9 @@ class Env():
     
         """
         logits  = self.model(None, encoder_outputs= self.last_hidden_encoder_state, decoder_input_ids= self.decoder_input_ids, return_dict=True).logits
-        print(logits,logits.shape)
+        # print(logits,logits.shape)
         logits=logits[:,-1,:].squeeze()
-        print(logits,logits.shape)
+        # print(logits,logits.shape)
 
         softmax = nn.Softmax(dim=0)
         ## Embedding of top k words
@@ -143,6 +145,7 @@ class Env():
             break
         rollout_decoded_input_id=self.decoder_input_ids
         self.decoder_input_ids= current_decoded_input_id
+        print("rollout",rollout_decoded_input_id)
         return rollout_decoded_input_id
         
     
