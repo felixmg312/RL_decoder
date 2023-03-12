@@ -7,3 +7,4 @@ from DQN import *
 from dataReader import *
 from env import *
 
+print("test")

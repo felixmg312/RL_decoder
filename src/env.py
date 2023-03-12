@@ -3,27 +3,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
-from pyemd import emd
-import gensim
-from nltk.corpus import stopwords
-from nltk import download
-download('stopwords')
-from transformers import AutoTokenizer
 from transformers import (
     AutoModelForSeq2SeqLM,
     AutoTokenizer,
-    Seq2SeqTrainingArguments,
-    Seq2SeqTrainer,
-    DataCollatorForSeq2Seq,
 )
 import torch 
 
 import random
 
-import datasets
-from transformers import pipeline
-from transformers.pipelines.pt_utils import KeyDataset
-from transformers import logging
+
 
 
 
@@ -78,7 +66,7 @@ class Env():
         """
         logits  = self.model(None, encoder_outputs= self.last_hidden_encoder_state, decoder_input_ids= self.decoder_input_ids, return_dict=True).logits
         print(logits,logits.shape)
-        logits=logit[:,-1,:].squeeze()
+        logits=logits[:,-1,:].squeeze()
         print(logits,logits.shape)
 
         softmax = nn.Softmax(dim=0)
@@ -218,5 +206,6 @@ class Env():
         self.update_state(action)
         next_state= self.get_next_state()
         termination= self.is_termination()
+        reward=None
 #         reward= self.reward.evaluate_reward()
         return next_state,reward,termination
