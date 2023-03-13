@@ -109,11 +109,11 @@ class Env():
         """
         self.decoder_input_ids=self.decoder_input_ids[0][:-1].unsqueeze(0)
         
-    def add_word(self):
+    def add_word(self,k=30):
         """
         Choose a word according to top k and update the current decoder input ids
         """
-        idx,probs=self.get_top_k()
+        idx,probs=self.get_top_k(k)
         decoder_idx_chosen=self.sample_word(idx,probs)
         if decoder_idx_chosen==self.eos_token_id:
             self.done=True
@@ -144,7 +144,7 @@ class Env():
         current_decoded_input_id=self.decoder_input_ids
         while self.done==False:
             for _ in range(max_length):
-                self.add_word()
+                self.add_word(k=1000)
             break
         rollout_decoded_input_id=self.decoder_input_ids
         self.decoder_input_ids= current_decoded_input_id

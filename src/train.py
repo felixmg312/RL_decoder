@@ -35,6 +35,7 @@ class Trainer():
                     self.agent.update(batch_size)
                     # print('in agent update')
                 if done or epoch==max_gen_length-1:
+                    # print("currently generate is",env.generate_sentence_so_far())
                     self.epoch_rewards.append(epoch_reward)
                 print("epoch is",epoch,"reward is",epoch_reward)
                 state=next_state
