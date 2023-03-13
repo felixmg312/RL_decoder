@@ -3,29 +3,36 @@ from DQN import *
 from dataReader import *
 from env import *
 
-def train(env,agent,max_epochs,max_steps,batch_size):
-    """
-    env: need to implement step
-    agent:
-    max_epochs: max training length
-    max_steps: max sequence length of our sentence
-    batch_size: the batch that we are taking for each training epoch
-    """
-    epoch_rewards=[]
-    for epoch in range(max_epochs):
-        #state= env.reset()
-        epoch_reward=0
-        for step in range(max_steps):
-            action= agent.get_action(state)
-            next_state,reward,done=env.step(action)
-            agent.replay_buffer.push(state, action, reward, next_state, done)
-            epoch_reward+=reward
-            
-            if len(agent.replay_buffer) > batch_size:
-                agent.update(batch_size)
-            if done or step == max_steps-1:
-                epoch_rewards.append(epoch_reward)
-                print("epoch" + str(epoch) + ": " + str(epoch_reward))
-                break
-            state= next_state
-    return epoch_rewards
+class Trainer():
+    def __init__(self,env,agent,DQN,ReplayMemory,pretrained_model,pretrained_tokenizer,input_sentences,output_sentences,classifier,batch_size=16):
+        self.agent=agent
+        self.epoch_rewards=[]
+        self.input_sentences=input_sentences
+        self.output_sentences=output_sentences
+        self.batch_size=batch_size
+        self.classifer=classifier
+        self.pretrained_model=pretrained_model
+        self.pretrained_tokenizer=pretrained_tokenizer
+        self.env=env
+        self.DQN=DQN
+        self.ReplayMemory= ReplayMemory
+    def train(self,batch_size,max_gen_length):
+        for input_sentence,output_sentence in zip(self.input_sentences,self.output_sentences):
+            print("training")
+            env= self.env(pretrained_model=self.pretrained_model,pretrained_tokenizer=self.pretrained_tokenizer,input_sentence=input_sentence,target_sentence=output_sentence,classifier=self.classifer)
+            state= env.reset()
+            input_sentence,input_vec=state
+            input_sentence=self.pretrained_tokenizer(input_sentence,return_tensors='pt',padding='max_length', max_length=80)
+            max_gen_length=30
+            epoch_reward=0
+            for epoch in range(max_gen_length):
+                print("in epoch")
+                action=self.agent.get_action(input_sentence,input_vec)
+                next_state,reward,done=env.step(action)
+                self.agent.replay_buffer.push(state, action, next_state,reward, done)
+                epoch_reward+=reward
+                if len(self.agent.replay_buffer) > batch_size:
+                    self.agent.update(batch_size)
+                    print('in agent update')
+                if done or epoch==max_gen_length-1:
+                    self.epoch_rewards.append(epoch_reward)

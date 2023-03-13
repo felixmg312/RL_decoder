@@ -10,36 +10,36 @@ from transformers import (
 import torch 
 import gensim
 import random
-from nltk.corpus import stopwords
-from nltk import download
-download('stopwords')
-
-
+# from nltk.corpus import stopwords
+# from nltk import download
+# download('stopwords')
 
 
 class Env():
-    def __init__(self,input_sentence,model_name,classifier,classifier_vector_length=4):
+    def __init__(self,input_sentence,pretrained_model,pretrained_tokenizer,target_sentence,classifier,classifier_vector_length=4):
         """
         input_sentence: the input sentence x 
+        output_sentence: the target sentence, only used to calculate reward
         model_name: the transformer model that we are using
         sentence_helper: the sentence class that contains helper function for the currently decoded word
         reward: the reward class that will return the reward of a new action
         """
        
         ##Initialize variables
+        self.target_sentence=target_sentence
         self.input_sentence=input_sentence
-        self.model_name=model_name
         self.classifier_vector_length=classifier_vector_length
+        self.classifier= classifier
         self.done= False
         ## Intialize Model and Tokenizer
-        self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.model = pretrained_model
+        self.tokenizer = pretrained_tokenizer
         self.input_ids = self.get_ids(input_sentence) ## tokenized the input sentence
         self.decoder_input_ids = torch.tensor([[self.model.config.decoder_start_token_id]]) ## id for start token
         self.next_state = self.model(self.input_ids, decoder_input_ids= self.decoder_input_ids, return_dict=True)
         self.last_hidden_encoder_state = (self.next_state.encoder_last_hidden_state,) ## the hidden state
         self.eos_token_id = self.model.config.eos_token_id
-        self.classifier = classifier
+        self.id2action={0:"add_word",1:"remove_word",2:"replace_word"}
 
         
         ## Freezing the model
@@ -55,11 +55,11 @@ class Env():
         
     def reset(self):
         """
-        reset the environment to the initial state
+        returns the initial state of the environment 
         """
-        self.vector_state=torch.zeros(1,classifier_vector_length)
-        self.sentence_state= ""
-        self.decoder_input_ids = torch.tensor([[self.model.config.decoder_start_token_id]])
+        self.sentence_state= self.input_sentence
+        self.vector_state=torch.zeros(1,self.classifier_vector_length)
+        return self.sentence_state,self.vector_state
     def get_top_k(self,k=30):
         """
         get the next possible choices given current decode state
@@ -67,9 +67,9 @@ class Env():
     
         """
         logits  = self.model(None, encoder_outputs= self.last_hidden_encoder_state, decoder_input_ids= self.decoder_input_ids, return_dict=True).logits
-        # print(logits,logits.shape)
+#         print(logits,logits.shape)
         logits=logits[:,-1,:].squeeze()
-        # print(logits,logits.shape)
+#         print(logits,logits.shape)
 
         softmax = nn.Softmax(dim=0)
         ## Embedding of top k words
@@ -107,7 +107,7 @@ class Env():
         """
         remove a word
         """
-        self.decoder_input_ids=self.decoder_input_ids[0][:-1]
+        self.decoder_input_ids=self.decoder_input_ids[0][:-1].unsqueeze(0)
         
     def add_word(self):
         """
@@ -124,7 +124,10 @@ class Env():
         action: add_word, remove_word, replace_word
         Update the current state and eturns next state given an action word
         """
+        action= self.id2action[action]
         if action == "remove_word":
+            if len(self.generated_sentence_so_far())<=2:
+                return
             self.remove_word()
            
         if action== "add_word":
@@ -145,7 +148,6 @@ class Env():
             break
         rollout_decoded_input_id=self.decoder_input_ids
         self.decoder_input_ids= current_decoded_input_id
-        print("rollout",rollout_decoded_input_id)
         return rollout_decoded_input_id
         
     
@@ -154,9 +156,10 @@ class Env():
         Update the crossentropy vector and return the sentence state
         """
         #to do: rollout to build up the classifier vector
-        self.vector_state= torch.tensor(self.classifier.get_scores(self.input_sentence,self.rollout_simulator()))
+        rollout_sentence=self.id2word(self.rollout_simulator())
+        self.vector_state= torch.tensor(self.classifier.get_scores(self.input_sentence,rollout_sentence))
         self.sentence_state= self.input_sentence+self.generated_sentence_so_far()
-        return self.vector_state,self.sentence_state
+        return self.sentence_state,self.vector_state
     def generated_sentence_so_far(self):
         """
         returns the currently decoded words so far
@@ -192,7 +195,7 @@ class Env():
               )
             return self.tokenizer.decode(topk_output[0], skip_special_tokens=True)
         if decoding_strategy== "topP":
-            topP_output= model.generate(
+            topP_output= self.model.generate(
                 input_ids=self.input_ids,
                 max_length=50,
                 top_p=0.9,
@@ -209,9 +212,19 @@ class Env():
         self.update_state(action)
         next_state= self.get_next_state()
         termination= self.is_termination()
-#         reward= self.reward.evaluate_reward()
+        simulated_input_id=self.rollout_simulator()
+        simulated_sentence= self.id2word(simulated_input_id)
+        print(simulated_sentence)
+        # print("simulated_sentence",self.tokenizer.decode(simulated_input_id, skip_special_tokens = True))
+        if termination is False:
+            reward= self.get_reward(self.input_sentence,simulated_sentence,weight_vec=[1,1,0.001,1])
+        else:
+            reward= self.get_reward(self.target_sentence,simulated_sentence,weight_vec=[1,1,0.001,1])
+
         return next_state,reward,termination
-    
+
+
+
     def get_reward(self,target,decoded,weight_vec):
         s = np.array(self.classifier.get_scores(target,decoded))
         return s.dot(weight_vec)
