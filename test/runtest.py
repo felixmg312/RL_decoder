@@ -1,8 +1,8 @@
 
 
 import sys        
-sys.path.append("/Users/felixmeng/Desktop/RL_Decoder/src")
-sys.path.append("/Users/felixmeng/Desktop/RL_Decoder/model")
+sys.path.append("src")
+sys.path.append("model")
 from agent import *
 from DQN import *
 from dataReader import *

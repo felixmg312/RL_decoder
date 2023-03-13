@@ -25,10 +25,7 @@ class Trainer():
             input_sentence=self.pretrained_tokenizer(input_sentence,return_tensors='pt',padding='max_length', max_length=80)
             max_gen_length=30
             epoch_reward=0
-            for epoch in range(max_gen_length):
-                # print("in epoch")
-    
-                # print("generated sequence so far", env.generated_sentence_so_far())
+            for epoch in range(max_gen_length):    
                 action=self.agent.get_action(input_sentence,input_vec)
                 next_state,reward,done=env.step(action)
                 print(state,next_state)
@@ -38,7 +35,6 @@ class Trainer():
                     self.agent.update(batch_size)
                     # print('in agent update')
                 if done or epoch==max_gen_length-1:
-                    # print("generated sequence so far", env.generated_sequence_so_far())
                     self.epoch_rewards.append(epoch_reward)
                 print("epoch is",epoch,"reward is",epoch_reward)
                 state=next_state
