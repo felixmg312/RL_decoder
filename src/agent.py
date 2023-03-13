@@ -53,7 +53,9 @@ class DQNAgent:
         self.optimizer2 = torch.optim.Adam(self.model2.parameters())
     def get_action(self,input_sentence,input_vec):
 #         print(input_sentence)
-        qvals=self.model1.forward(input_sentence,input_vec)
+        qvals1=self.model1.forward(input_sentence,input_vec)
+        qvals2=self.model1.forward(input_sentence,input_vec)
+        qvals=(qvals1+qvals2)/2
 #         print("qval is",qvals)
         action= np.argmax(qvals.cpu().detach().numpy())
         if(np.random.randn()<self.epsilon):
