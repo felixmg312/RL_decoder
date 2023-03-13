@@ -55,11 +55,15 @@ class Classifier:
         for i in range(len(target_pred)):
           prob_target.append(target_pred[i]['score'])
           prob_decoded.append(decoded_pred[i]['score'])
-        scores.append(- self.loss(torch.tensor(prob_decoded),torch.tensor(prob_target)).item())
+        prob_decoded = torch.tensor(prob_decoded)
+        prob_target = torch.tensor(prob_target)
+
+        target_max_idx = torch.argmax(prob_target, 0, keepdim=True)
+        target_one_hot = torch.FloatTensor(prob_target.shape)
+        target_one_hot.zero_()
+        target_one_hot.scatter_(0, target_max_idx, 1)
+        scores.append(- self.loss(prob_decoded,target_one_hot).item())
       grammar_decoded = self.grammar_pred(decoded)
-      grammar_target = self.grammar_pred(target)
       scores.append(-np.log(grammar_decoded[0,0].item()))
+      print(scores)
       return scores
-        
-
-
