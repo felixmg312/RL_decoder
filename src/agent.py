@@ -106,13 +106,13 @@ class DQNAgent:
 #         print(actions)
 #         print("sentences state shape",sentences_state)
 #         print("vectors state shape", vectors_state.shape)
-        curr_Q1= self.model1.forward(sentences_state,vectors_state).gather(1,actions)
+        curr_Q1= self.model1.forward(sentences_state,vectors_state.float()).gather(1,actions)
 #         print("curr_Q1",curr_Q1.shape)
-        curr_Q2= self.model2.forward(sentences_state,vectors_state).gather(1,actions)
+        curr_Q2= self.model2.forward(sentences_state,vectors_state.float()).gather(1,actions)
 #         print("sentences state shape",sentences_next_state)
 #         print("vectors state shape", vectors_next_state.shape)
-        next_Q1= self.model1.forward(sentences_next_state,vectors_next_state)
-        next_Q2= self.model2.forward(sentences_next_state,vectors_next_state)
+        next_Q1= self.model1.forward(sentences_next_state,vectors_next_state.float())
+        next_Q2= self.model2.forward(sentences_next_state,vectors_next_state.float())
 #         print(curr_Q1.shape,curr_Q2.shape,next_Q1.shape,next_Q2.shape)
         next_Q= torch.min(
             torch.max(next_Q1,1)[0],
