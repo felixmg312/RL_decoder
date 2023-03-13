@@ -85,7 +85,7 @@ class DQNAgent:
         sentences_state,vectors_state=self.state_to_tensor(batch.state)
         sentences_next_state,vectors_next_state=self.state_to_tensor(batch.next_state)
 #         print("vectors next state",vectors_next_state)
-        actions=torch.Tensor(batch.action).to(self.device)
+        actions=torch.LongTensor(batch.action).to(self.device)
         rewards=torch.Tensor(batch.reward).to(self.device)
         terminations=torch.Tensor(batch.termination).to(self.device)
         return sentences_state,vectors_state, actions,rewards,sentences_next_state,vectors_next_state,terminations
@@ -93,8 +93,7 @@ class DQNAgent:
     def compute_loss(self,batch_size):
         ## reading from batch and reinitializing the state
         sentences_state,vectors_state, actions,rewards,sentences_next_state,vectors_next_state,terminations= self.read_from_replay_buffer(batch_size)
-        print("vectors state",vectors_state)
-        print("vectors next state",vectors_next_state)
+      
         
         ## possible resizing necessary
         
@@ -102,27 +101,29 @@ class DQNAgent:
         compute the current-state-Q-values and the next-state-Q-values of both models,
         but use the minimum of the next-state-Q-values to compute the expected Q value
         """
+        actions = actions.view(actions.size(0), 1)
+        terminations = terminations.view(terminations.size(0), 1)
+#         print(actions)
 #         print("sentences state shape",sentences_state)
 #         print("vectors state shape", vectors_state.shape)
-        curr_Q1= self.model1.forward(sentences_state,vectors_state.float())
+        curr_Q1= self.model1.forward(sentences_state,vectors_state).gather(1,actions)
 #         print("curr_Q1",curr_Q1.shape)
-        curr_Q2= self.model2.forward(sentences_state,vectors_state.float())
+        curr_Q2= self.model2.forward(sentences_state,vectors_state).gather(1,actions)
 #         print("sentences state shape",sentences_next_state)
 #         print("vectors state shape", vectors_next_state.shape)
-        next_Q1= self.model1.forward(sentences_next_state,vectors_next_state.float())
-        next_Q2= self.model2.forward(sentences_next_state,vectors_next_state.float())
-        print(curr_Q1.shape,curr_Q2.shape,next_Q1.shape,next_Q2.shape)
+        next_Q1= self.model1.forward(sentences_next_state,vectors_next_state)
+        next_Q2= self.model2.forward(sentences_next_state,vectors_next_state)
+#         print(curr_Q1.shape,curr_Q2.shape,next_Q1.shape,next_Q2.shape)
         next_Q= torch.min(
             torch.max(next_Q1,1)[0],
             torch.max(next_Q2,1)[0]
         )
-#         print(next_Q)
-#         print(next_Q)
+        next_Q = next_Q.view(next_Q.size(0), 1)
+
 #         print("next q",next_Q.shape)
 #         print(rewards.shape)
 #         print("self gamma multiply next q",(self.gamma*next_Q).shape)
         expected_Q= rewards+ self.gamma*(1-terminations)*next_Q
-        expected_Q= expected_Q.view(expected_Q.size(0),1)
 
 #         print(expected_Q.shape)
         
@@ -139,5 +140,6 @@ class DQNAgent:
         loss2.backward()
         self.optimizer2.step()
         self.epsilon= self.epsilon - self.eps_dec if self.epsilon >self.eps_min else self.eps_min
+        
         
         
