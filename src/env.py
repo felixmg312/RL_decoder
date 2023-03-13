@@ -137,7 +137,7 @@ class Env():
             self.remove_word()
             self.add_word()
  
-    def rollout_simulator(self,max_length=15):
+    def rollout_simulator(self,max_length=30):
         """
         use top k for rollout
         """
@@ -214,7 +214,7 @@ class Env():
         termination= self.is_termination()
         simulated_input_id=self.rollout_simulator()
         simulated_sentence= self.id2word(simulated_input_id)
-        print(simulated_sentence)
+        # print(simulated_sentence)
         # print("simulated_sentence",self.tokenizer.decode(simulated_input_id, skip_special_tokens = True))
         if termination is False:
             reward= self.get_reward(self.input_sentence,simulated_sentence,weight_vec=[1,1,0.001,1])

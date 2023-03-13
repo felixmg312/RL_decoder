@@ -103,29 +103,20 @@ class DQNAgent:
         """
         actions = actions.view(actions.size(0), 1)
         terminations = terminations.view(terminations.size(0), 1)
-#         print(actions)
-#         print("sentences state shape",sentences_state)
-#         print("vectors state shape", vectors_state.shape)
+
         curr_Q1= self.model1.forward(sentences_state,vectors_state.float()).gather(1,actions)
-#         print("curr_Q1",curr_Q1.shape)
         curr_Q2= self.model2.forward(sentences_state,vectors_state.float()).gather(1,actions)
-#         print("sentences state shape",sentences_next_state)
-#         print("vectors state shape", vectors_next_state.shape)
+
         next_Q1= self.model1.forward(sentences_next_state,vectors_next_state.float())
         next_Q2= self.model2.forward(sentences_next_state,vectors_next_state.float())
-#         print(curr_Q1.shape,curr_Q2.shape,next_Q1.shape,next_Q2.shape)
         next_Q= torch.min(
             torch.max(next_Q1,1)[0],
             torch.max(next_Q2,1)[0]
         )
         next_Q = next_Q.view(next_Q.size(0), 1)
 
-#         print("next q",next_Q.shape)
-#         print(rewards.shape)
-#         print("self gamma multiply next q",(self.gamma*next_Q).shape)
         expected_Q= rewards+ self.gamma*(1-terminations)*next_Q
 
-#         print(expected_Q.shape)
         
         loss1= F.huber_loss(curr_Q1, expected_Q.detach())
         loss2= F.huber_loss(curr_Q2, expected_Q.detach())

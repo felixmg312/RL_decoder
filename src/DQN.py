@@ -36,7 +36,7 @@ class DQN_with_attention(nn.Module):
         Input vector: 5 classifer vector => fcn to (1,10)
         Concatenate them and output the 3 actions
         """
-        print("input vector is ",input_vector)
+        # print("input vector is ",input_vector)
         encoder_output = self.encoder(**tokenized_sequence)["last_hidden_state"]
         encoder_output = self.flatten(encoder_output)
         encoder_output= self.resize_embedding(encoder_output)
