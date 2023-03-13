@@ -50,7 +50,7 @@ class Env():
         sentence_state=input_sentence+ currently decoded sentence
         """
         ## Initialize the state
-        self.vector_state=torch.zeros(1,classifier_vector_length)
+        self.vector_state=torch.zeros(classifier_vector_length)
         self.sentence_state= self.input_sentence+self.generated_sentence_so_far()
         
     def reset(self):
@@ -58,7 +58,7 @@ class Env():
         returns the initial state of the environment 
         """
         self.sentence_state= self.input_sentence
-        self.vector_state=torch.zeros(1,self.classifier_vector_length)
+        self.vector_state=torch.zeros(self.classifier_vector_length)
         return self.sentence_state,self.vector_state
     def get_top_k(self,k=30):
         """
