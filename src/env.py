@@ -40,7 +40,7 @@ class Env():
         self.last_hidden_encoder_state = (self.next_state.encoder_last_hidden_state,) ## the hidden state
         self.eos_token_id = self.model.config.eos_token_id
         self.id2action={0:"add_word",1:"remove_word",2:"replace_word"}
-
+        self.reward=0
         
         ## Freezing the model
         for param in self.model.parameters():
@@ -57,8 +57,10 @@ class Env():
         """
         returns the initial state of the environment 
         """
+        self.done=False
         self.sentence_state= self.input_sentence
         self.vector_state=torch.zeros(1,self.classifier_vector_length)
+        self.reward=0
         return self.sentence_state,self.vector_state
     def get_top_k(self,k=30):
         """
@@ -69,7 +71,6 @@ class Env():
         logits  = self.model(None, encoder_outputs= self.last_hidden_encoder_state, decoder_input_ids= self.decoder_input_ids, return_dict=True).logits
 #         print(logits,logits.shape)
         logits=logits[:,-1,:].squeeze()
-#         print(logits,logits.shape)
 
         softmax = nn.Softmax(dim=0)
         ## Embedding of top k words
@@ -127,6 +128,7 @@ class Env():
         action= self.id2action[action]
         if action == "remove_word":
             if len(self.generated_sentence_so_far())<=2:
+                self.reward-=1
                 return
             self.remove_word()
            
@@ -217,11 +219,11 @@ class Env():
         # print(simulated_sentence)
         # print("simulated_sentence",self.tokenizer.decode(simulated_input_id, skip_special_tokens = True))
         if termination is False:
-            reward= self.get_reward(self.input_sentence,simulated_sentence,weight_vec=[1,1,0.001,1])
+            self.reward= self.get_reward(self.input_sentence,simulated_sentence,weight_vec=[1,1,0.001,1])
         else:
-            reward= self.get_reward(self.target_sentence,simulated_sentence,weight_vec=[1,1,0.001,1])
+            self.reward= self.get_reward(self.target_sentence,simulated_sentence,weight_vec=[1,1,0.001,1])
 
-        return next_state,reward,termination
+        return next_state,self.reward,termination
 
 
 

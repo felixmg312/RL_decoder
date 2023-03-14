@@ -1,4 +1,5 @@
 import datasets
+from datasets import load_dataset
 
 
 class Dataset_Reader:
@@ -12,10 +13,10 @@ class Dataset_Reader:
             small_dataset= datasets.DatasetDict({'train':train_data,'test':test_data})
             self.input_sentences=small_dataset['train']['document'][:data_set_size]
             self.output_sentences=small_dataset['train']['summary'][:data_set_size]
-        if mode== "testing":
-            train_ds, test_ds = datasets.load_dataset(data_name, split=['train', 'test'])
-            ## todo:: filling this up
-    def get_input(self):
-        return self.input_sentences
-    def get_output(self):
-        return self.output_sentences
+            self.input_test=small_dataset['test']['document'][:data_set_size]
+            self.output_test=small_dataset['test']['summary'][:data_set_size]
+
+    def get_training(self):
+        return self.input_sentences,self.output_sentences
+    def get_testing(self):
+        return self.input_test,self.output_test
