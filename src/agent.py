@@ -62,7 +62,9 @@ class DQNAgent:
   
         self.optimizer1 = torch.optim.Adam(self.model1.parameters())
         self.optimizer2 = torch.optim.Adam(self.model2.parameters())
-    def get_action(self,input_sentence,input_vec):
+    def get_action(self,input_sentence,input_vec,test=False):
+        if test==True:
+            self.epsilon=0
         if(np.random.randn()<self.epsilon):
             action=random.choice(self.action_space)
             print("chosen random action is",self.id2action[action])
@@ -146,8 +148,20 @@ class DQNAgent:
         
         
     def save_checkpoint(self,epoch):
+        """
+        Saving model1 and model2 every 100 epochs
+        """
         if epoch % 100 == 0:
             checkpoint_path1 = os.path.join('checkpoints_model1', f'model_epoch_{epoch}.pt')
             checkpoint_path2 = os.path.join('checkpoints_model2', f'model_epoch_{epoch}.pt')
             torch.save(self.model1.state_dict(), checkpoint_path1)
             torch.save(self.model2.state_dict(), checkpoint_path2)
+    def load_model(self,checkpoint_path1,checkpoint_path2):
+        """
+        Load the model with a given checkpoint
+        """
+        checkpoint1 = torch.load(checkpoint_path1)
+        self.model1.load_state_dict(checkpoint1)
+        checkpoint2 = torch.load(checkpoint_path2)
+        self.model2.load_state_dict(checkpoint2)
+        
