@@ -2,7 +2,7 @@
 from DQN import *
 from env import *
 from torch.utils.tensorboard import SummaryWriter
-
+import os
 
 Transition= namedtuple('Transition',('state', 'action', 'next_state', 'reward','termination'))
 class ReplayMemory(object):
@@ -52,6 +52,9 @@ class DQNAgent:
         self.writer1= SummaryWriter()
         self.writer2= SummaryWriter()
         self.epochs=0
+        if not os.path.exists('checkpoints'):
+            os.mkdir('checkpoints_model1')
+            os.mkdir('checkpoints_model2')
         ## 
         self.model1=DQN_with_attention(pretrained_model,self.pretrained_tokenizer)
         self.model2=DQN_with_attention(pretrained_model,self.pretrained_tokenizer)
@@ -131,6 +134,7 @@ class DQNAgent:
         loss1,loss2=self.compute_loss(batch_size)
         self.writer1.add_scalar('Loss1/train', loss1.item(),self.epochs)
         self.writer2.add_scalar('Loss2/train',loss2.item(),self.epochs)
+        self.save_checkpoint(epoch=self.epochs)
         self.optimizer1.zero_grad()
         loss1.backward()
         self.optimizer1.step()
@@ -140,4 +144,9 @@ class DQNAgent:
         self.epsilon= self.epsilon - self.eps_dec if self.epsilon >self.eps_min else self.eps_min
         
         
-        
+    def save_checkpoint(self,epoch):
+        if epoch % 100 == 0:
+            checkpoint_path1 = os.path.join('checkpoints_model1', f'model_epoch_{epoch}.pt')
+            checkpoint_path2 = os.path.join('checkpoints_model2', f'model_epoch_{epoch}.pt')
+            torch.save(self.model1.state_dict(), checkpoint_path1)
+            torch.save(self.model2.state_dict(), checkpoint_path2)
