@@ -18,6 +18,10 @@ if __name__ == '__main__':
 
     ## Model Initialization
     model_name = "facebook/bart-base"
+    checkpoint_path1="checkpoints_model1/model_epoch_2200.pt"
+    checkpoint_path2="checkpoints_model2/model_epoch_2200.pt"
+    # agent.load_model(checkpoint_path1,checkpoint_path2) ## uncomment when u want to load checkpoint
+
     # model_name = "model/checkpoint-16500" "not working for fine tuned"
     pretrained_model=AutoModelForSeq2SeqLM.from_pretrained(model_name)
     pretrained_tokenizer=AutoTokenizer.from_pretrained(model_name)

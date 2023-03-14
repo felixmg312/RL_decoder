@@ -29,8 +29,10 @@ class Trainer():
         self.Env=Env
         self.ReplayMemory= ReplayMemory
         self.max_action_length=max_action_length
+        self.sentence_counter=0
     def train(self,batch_size):
         for input_sentence,output_sentence in zip(self.input_sentences,self.output_sentences):
+            self.sentence_counter+=1
             env= self.Env(pretrained_model=self.pretrained_model,pretrained_tokenizer=self.pretrained_tokenizer,input_sentence=input_sentence,target_sentence=output_sentence,classifier=self.classifer)
             state= env.reset()
             input_sentence,input_vec=state
@@ -51,6 +53,8 @@ class Trainer():
                     break
                 print("epoch is",epoch,"reward is",epoch_reward)
                 state=next_state
+            if (self.sentence_counter)%10==0:
+                self.write_result()
         self.agent.writer1.close()
         self.agent.writer2.close()
     def get_reward(self):
@@ -60,7 +64,6 @@ class Trainer():
     def write_result(self,location="result/"):
         average_rewards=self.get_reward()
         generated_sentences=self.get_generated_sentences_so_far()
-
         reward_file_name=location+"average_rewards.txt"
         generated_sentences_file_name= location+'generated_sequences.txt'
         with open(reward_file_name, "w") as f:

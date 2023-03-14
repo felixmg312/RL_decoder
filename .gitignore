@@ -3,3 +3,7 @@ model/
 src/__pycache__/
 test/
 runs/
+checkpoints_model1/
+checkpoints_model2/
+result/
+result/average_rewards.txt

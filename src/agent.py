@@ -54,7 +54,7 @@ class DQNAgent:
         self.epochs=0
         if not os.path.exists('checkpoints_model1'):
             os.mkdir('checkpoints_model1')
-        if not os.path.exists('checkpoints_model_2'):
+        if not os.path.exists('checkpoints_model2'):
             os.mkdir('checkpoints_model2')
         ## 
         self.model1=DQN_with_attention(pretrained_model,self.pretrained_tokenizer)
@@ -151,7 +151,7 @@ class DQNAgent:
         """
         Saving model1 and model2 every 100 epochs
         """
-        if epoch % 100 == 0:
+        if epoch % 1000 == 0:
             checkpoint_path1 = os.path.join('checkpoints_model1', f'model_epoch_{epoch}.pt')
             checkpoint_path2 = os.path.join('checkpoints_model2', f'model_epoch_{epoch}.pt')
             torch.save(self.model1.state_dict(), checkpoint_path1)
