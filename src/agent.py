@@ -86,7 +86,7 @@ class DQNAgent:
         given a state, returns vector returns input id and attention mask
         """
         sentences,vectors=zip(*state)
-        state_index_mask=self.pretrained_tokenizer(list(sentences), return_tensors="pt", padding='max_length', max_length=self.max_seq_length)
+        state_index_mask=self.pretrained_tokenizer(list(sentences), return_tensors="pt", padding='max_length', max_length=self.max_seq_length, truncation=True)
         vectors=torch.stack(vectors,dim=0)
         vectors=torch.squeeze(vectors,dim=1)
         return state_index_mask,vectors
