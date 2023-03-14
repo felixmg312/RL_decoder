@@ -52,8 +52,9 @@ class DQNAgent:
         self.writer1= SummaryWriter()
         self.writer2= SummaryWriter()
         self.epochs=0
-        if not os.path.exists('checkpoints'):
+        if not os.path.exists('checkpoints_model1'):
             os.mkdir('checkpoints_model1')
+        if not os.path.exists('checkpoints_model_2'):
             os.mkdir('checkpoints_model2')
         ## 
         self.model1=DQN_with_attention(pretrained_model,self.pretrained_tokenizer)
