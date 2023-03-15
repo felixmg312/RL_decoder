@@ -154,7 +154,7 @@ class Env():
             self.replace_word_counter+=1
             self.remove_word()
             self.add_word()
-            self.add_word()
+            # self.add_word()
             self.add_word()
  
     def rollout_simulator(self,max_length=30):
@@ -253,9 +253,9 @@ class Env():
             #     reward*=2
             if self.add_word_counter <= (self.remove_word_counter+self.replace_word_counter):
                 reward-=5
-            if self.action_counter == self.max_action_length:
-                print("not generating a sentence")
-                reward -=10
+            # if self.action_counter == self.max_action_length:
+            #     print("not generating a sentence")
+            #     reward -=10
         else:
             generated_sentence=self.generated_sentence_so_far()
             score_vec = np.array(self.classifier.get_scores(self.target_sentence,generated_sentence))
@@ -268,7 +268,7 @@ class Env():
                 reward-=10
             if generated_distance<= baseline_distance:
                 reward+=20
-            else:
-                reward-=10
+            if generated_distance<=1:
+                reward+=20
        
         return reward
