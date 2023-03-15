@@ -146,7 +146,7 @@ class Env():
         current_decoded_input_id=self.decoder_input_ids
         while self.done==False:
             for _ in range(max_length):
-                self.add_word(k=1000)
+                self.add_word(k=2000)
             break
         rollout_decoded_input_id=self.decoder_input_ids
         self.decoder_input_ids= current_decoded_input_id

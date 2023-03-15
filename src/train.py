@@ -35,11 +35,14 @@ class Trainer():
             self.sentence_counter+=1
             env= self.Env(pretrained_model=self.pretrained_model,pretrained_tokenizer=self.pretrained_tokenizer,input_sentence=input_sentence,target_sentence=output_sentence,classifier=self.classifer)
             state= env.reset()
-            input_sentence,input_vec=state
-            input_sentence=self.pretrained_tokenizer(input_sentence,return_tensors='pt',padding='max_length', max_length=80)
+            # input_sentence,input_vec=state
+            # input_sentence=self.pretrained_tokenizer(input_sentence,return_tensors='pt',padding='max_length', max_length=80)
             epoch_reward=0
-            for epoch in tq.tqdm(range(self.max_action_length)):    
-                action=self.agent.get_action(input_sentence,input_vec)
+            for epoch in tq.tqdm(range(self.max_action_length)):
+                input_sentence,input_vec=state    
+                input_sentence=self.pretrained_tokenizer(input_sentence,return_tensors='pt',padding='max_length', max_length=80)
+
+                action=self.agent.get_action(input_sentence,input_vec.float())
                 next_state,reward,done=env.step(action)
                 self.agent.replay_buffer.push(state, action, next_state,reward, done)
                 epoch_reward+=reward
@@ -73,3 +76,5 @@ class Trainer():
             # iterate over the list and write each element to a new line
             for item in generated_sentences:
                 f.write(f"{item}\n")
+    
+
