@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     ## Model Initialization
     #model_name = "facebook/bart-base"
-    model_name = "model/finetuneBart" ##"not working for fine tuned"
+    model_name = "model/finetuneBart" 
 
     checkpoint_path1="checkpoints_model1/model_epoch_2200.pt"
     checkpoint_path2="checkpoints_model2/model_epoch_2200.pt"

@@ -144,11 +144,14 @@ class Env():
            
         if action== "add_word":
             self.add_word_counter+=1
-            self.add_word()
+            for _ in range(3):
+                self.add_word()
+
             
         if action == "replace word":
             self.replace_word_counter+=1
             self.remove_word()
+            self.add_word()
             self.add_word()
  
     def rollout_simulator(self,max_length=30):
@@ -253,9 +256,9 @@ class Env():
         ## removing or replacing
         if (action == 1 or action == 2) and len(self.generated_sentence_so_far())<=2:
             reward-=1
-        if (self.is_termination()==True):
-            if len(self.generated_sentence_so_far())<=6:
-                reward-=(15-len(self.generated_sentence_so_far()))
+        # if (self.is_termination()==True):
+        #     if len(self.generated_sentence_so_far())<=6:
+        #         reward-=(15-len(self.generated_sentence_so_far()))
         if self.add_word_counter <= 2*(self.remove_word_counter+self.replace_word_counter):
             reward-=0.5
         return reward
