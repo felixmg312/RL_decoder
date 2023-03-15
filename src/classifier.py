@@ -6,8 +6,9 @@ from transformers.pipelines.pt_utils import KeyDataset
 from transformers import logging
 import numpy as np
 import torch as T
+import gensim
 class Classifier:
-    def __init__(self,path):
+    def __init__(self,path,embedding_path="model/GoogleNews-vectors-negative300.bin.gz"):
         self.grammar_model = BertForSequenceClassification.from_pretrained(path)
         self.grammar_tokenizer = BertTokenizer.from_pretrained(path)
         fluency_pipe = pipeline(model="prithivida/parrot_fluency_model",task = 'text-classification',return_all_scores = True)
@@ -15,7 +16,7 @@ class Classifier:
         topic_pipe = pipeline(model="ebrigham/EYY-Topic-Classification",task = 'text-classification',return_all_scores = True)
         self.pipes = [fluency_pipe,sentiment_pipe,topic_pipe]
         self.loss = torch.nn.CrossEntropyLoss()
-
+        self.embedding_model=gensim.models.KeyedVectors.load_word2vec_format(embedding_path, binary=True)
     def sentiment_pred(self,sent):
         return self.pipes[1](sent)
 
@@ -41,7 +42,20 @@ class Classifier:
 
     def topic_pred(self,sent):
         return self.pipes[2](sent)
+    
+    def sentence_mover_distance(self,generated_sentence,base_line_sentence,target_sentence):
+        target_sentence = target_sentence.lower().split()
+        base_line_sentence= base_line_sentence.lower().split()
+        # print(generated_sentence,base_line_sentence, target_sentence)
 
+        # generated_sentence = [w for w in generated_sentence if w not in self.stopwords]
+        # target_sentence = [w for w in target_sentence if w not in self.stopwords]
+        # base_line_sentence=[w for w in base_line_sentence if w not in self.stopwords]
+        generated_distance= self.embedding_model.wmdistance(generated_sentence, target_sentence)
+        baseline_distance= self.embedding_model.wmdistance(base_line_sentence, target_sentence)
+        # print("baseline_distance",baseline_distance,"generated distance",generated_distance)
+        return baseline_distance,generated_distance
+    
     def get_scores(self,target,decoded):
     #cross entropy scores between target and decoded = [fluency, sentiment, topic, grammar]
       fluency_decoded = self.pipes[0](decoded)

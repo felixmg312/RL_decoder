@@ -16,7 +16,7 @@ import random
 
 
 class Env():
-    def __init__(self,input_sentence,pretrained_model,pretrained_tokenizer,target_sentence,classifier,classifier_vector_length=4):
+    def __init__(self,input_sentence,pretrained_model,pretrained_tokenizer,target_sentence,classifier,max_action_length=50,classifier_vector_length=4):
         """
         input_sentence: the input sentence x 
         output_sentence: the target sentence, only used to calculate reward
@@ -31,6 +31,7 @@ class Env():
         self.classifier_vector_length=classifier_vector_length
         self.classifier= classifier
         self.done= False
+        self.max_action_length=max_action_length
         ## Intialize Model and Tokenizer
         self.model = pretrained_model
         self.tokenizer = pretrained_tokenizer
@@ -45,6 +46,7 @@ class Env():
         self.add_word_counter=0
         self.remove_word_counter=0
         self.replace_word_counter=0
+        self.action_counter=0
         ## Freezing the model
         for param in self.model.parameters():
             param.requires_grad = False
@@ -132,13 +134,13 @@ class Env():
     def update_state(self,action):
         """
         action: add_word, remove_word, replace_word
-        Update the current state and eturns next state given an action word
+        Update the current state and returns next state given an action word
         """
         action= self.id2action[action]
+        self.action_counter+=1
         if action == "remove_word":
             self.remove_word_counter+=1
-            if len(self.generated_sentence_so_far())<=2:
-                self.reward-=1
+            if len(self.generated_sentence_so_far())<1:
                 return
             self.remove_word()
            
@@ -151,6 +153,7 @@ class Env():
         if action == "replace word":
             self.replace_word_counter+=1
             self.remove_word()
+            self.add_word()
             self.add_word()
             self.add_word()
  
@@ -232,33 +235,40 @@ class Env():
         self.update_state(action)
         next_state= self.get_next_state()
         termination= self.is_termination()
-        simulated_input_id=self.rollout_simulator()
-        simulated_sentence= self.id2word(simulated_input_id)
-        # print(simulated_sentence)
-        # print("simulated_sentence",self.tokenizer.decode(simulated_input_id, skip_special_tokens = True))
+        reward=self.get_reward(action,termination=termination)
+            
+        return next_state,reward,termination
+
+
+
+    def get_reward(self,action,termination,weight_vec=[1,1,0.001,1]):
         if termination is False:
-            self.reward= self.get_reward(self.input_sentence,simulated_sentence,weight_vec=[1,1,0.001,1],action=action)
+            simulated_input_id=self.rollout_simulator()
+            simulated_sentence= self.id2word(simulated_input_id)
+            score_vec = np.array(self.classifier.get_scores(self.input_sentence,simulated_sentence))
+            reward= score_vec.dot(weight_vec)
+            if (action == 1 or action == 2) and len(self.generated_sentence_so_far())<=1:
+                reward-=5
+            # if action == 0:
+            #     reward*=2
+            if self.add_word_counter <= (self.remove_word_counter+self.replace_word_counter):
+                reward-=5
+            if self.action_counter == self.max_action_length:
+                print("not generating a sentence")
+                reward -=10
         else:
-            print("in termination")
-            self.reward= self.get_reward(self.target_sentence,simulated_sentence,weight_vec=[1,1,0.001,1],action=action)
-
-        return next_state,self.reward,termination
-
-
-
-    def get_reward(self,target,decoded,weight_vec,action):
-        # print("action is",action)
-        reward = np.array(self.classifier.get_scores(target,decoded))
-        reward= reward.dot(weight_vec)
-        ## adding word
-        if action == 0:
-            reward*=2
-        ## removing or replacing
-        if (action == 1 or action == 2) and len(self.generated_sentence_so_far())<=2:
-            reward-=1
-        # if (self.is_termination()==True):
-        #     if len(self.generated_sentence_so_far())<=6:
-        #         reward-=(15-len(self.generated_sentence_so_far()))
-        if self.add_word_counter <= 2*(self.remove_word_counter+self.replace_word_counter):
-            reward-=0.5
+            generated_sentence=self.generated_sentence_so_far()
+            score_vec = np.array(self.classifier.get_scores(self.target_sentence,generated_sentence))
+            reward= score_vec.dot(weight_vec)
+            baseline_sentence=self.decode_whole_sentence()
+            baseline_distance,generated_distance=self.classifier.sentence_mover_distance(generated_sentence,baseline_sentence,self.target_sentence)
+            print("baseline_distance:",baseline_distance)
+            print("generated_dsitance:",generated_distance)
+            if len(generated_sentence)<=3:
+                reward-=10
+            if generated_distance<= baseline_distance:
+                reward+=20
+            else:
+                reward-=10
+       
         return reward

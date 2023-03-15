@@ -44,8 +44,11 @@ classifier=Classifier("model/model_save")
 # print(trainer.get_generated_sentences_so_far())
 
 ## Test Test
-data_reader=Dataset_Reader(data_name="gigaword", test_size=0.1, data_set_size=20000,mode="training")
-input_train,output_train=data_reader.get_training()
-input_test,output_test=data_reader.get_testing()
-test_obj = Test(Env,agent,pretrained_model,pretrained_tokenizer,classifier,max_action_length=50)
-test_obj.test(input_test,output_test)
+# data_reader=Dataset_Reader(data_name="gigaword", test_size=0.1, data_set_size=20000,mode="training")
+# input_train,output_train=data_reader.get_training()
+# input_test,output_test=data_reader.get_testing()
+# test_obj = Test(Env,agent,pretrained_model,pretrained_tokenizer,classifier,max_action_length=50)
+# test_obj.test(input_test,output_test)
+
+## Classifier Test
+print(classifier.sentence_mover_distance("hi","test","lol"))

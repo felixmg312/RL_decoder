@@ -8,7 +8,7 @@ from collections import defaultdict
 
 
 class DQN_with_attention(nn.Module):
-    def __init__(self,pretrained_model,pretrained_tokenizer,hidden_size_1=50,hidden_size_2=100,embedding_size=768,max_seq_length=80,vector_size=4,action_size=3,lr=5e-5):
+    def __init__(self,pretrained_model,pretrained_tokenizer,hidden_size_1=50,hidden_size_2=100,embedding_size=768,max_seq_length=120,vector_size=4,action_size=3,lr=5e-5):
         super(DQN_with_attention,self).__init__()
         ## for encoder model
         self.max_seq_length=max_seq_length

@@ -24,7 +24,7 @@ class Test():
             state= env.reset()
             for epoch in tq.tqdm(range(self.max_action_length)):    
                 input_sentence,input_vec=state
-                input_sentence=self.pretrained_tokenizer(input_sentence,return_tensors='pt',padding='max_length', max_length=80)
+                input_sentence=self.pretrained_tokenizer(input_sentence,return_tensors='pt',padding='max_length', max_length=120)
                 action=self.agent.get_action(input_sentence,input_vec.float(),test=True)
                 next_state,_,done=env.step(action)
                 if done or epoch==self.max_action_length-1:
