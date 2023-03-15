@@ -34,14 +34,17 @@ class Env():
         ## Intialize Model and Tokenizer
         self.model = pretrained_model
         self.tokenizer = pretrained_tokenizer
-        self.input_ids = self.get_ids(input_sentence) ## tokenized the input sentence
-        self.decoder_input_ids = torch.tensor([[self.model.config.decoder_start_token_id]]) ## id for start token
+        self.input_ids = self.get_ids(input_sentence).to(T.device('cuda:0' if T.cuda.is_available() else 'cpu')) ## tokenized the input sentence
+        self.decoder_input_ids = torch.tensor([[self.model.config.decoder_start_token_id]]).to(T.device('cuda:0' if T.cuda.is_available() else 'cpu')) ## id for start token
         self.next_state = self.model(self.input_ids, decoder_input_ids= self.decoder_input_ids, return_dict=True)
         self.last_hidden_encoder_state = (self.next_state.encoder_last_hidden_state,) ## the hidden state
         self.eos_token_id = self.model.config.eos_token_id
         self.id2action={0:"add_word",1:"remove_word",2:"replace_word"}
         self.reward=0
-        
+        ##For reward
+        self.add_word_counter=0
+        self.remove_word_counter=0
+        self.replace_word_counter=0
         ## Freezing the model
         for param in self.model.parameters():
             param.requires_grad = False
@@ -50,7 +53,7 @@ class Env():
         sentence_state=input_sentence+ currently decoded sentence
         """
         ## Initialize the state
-        self.vector_state=torch.zeros(1,classifier_vector_length)
+        self.vector_state=torch.zeros(1,classifier_vector_length).to(T.device('cuda:0' if T.cuda.is_available() else 'cpu'))
         self.sentence_state= self.input_sentence+self.generated_sentence_so_far()
         
     def reset(self):
@@ -59,7 +62,7 @@ class Env():
         """
         self.done=False
         self.sentence_state= self.input_sentence
-        self.vector_state=torch.zeros(1,self.classifier_vector_length)
+        self.vector_state=torch.zeros(1,self.classifier_vector_length).to(T.device('cuda:0' if T.cuda.is_available() else 'cpu'))
         self.reward=0
         return self.sentence_state,self.vector_state
     def get_top_k(self,k=30):
@@ -75,6 +78,7 @@ class Env():
         softmax = nn.Softmax(dim=0)
         ## Embedding of top k words
         values, idx = torch.topk(logits, k=k, axis=-1)
+        # print("value",values, "idx",idx)
         probs= softmax(values)
         return idx, probs
 
@@ -127,15 +131,18 @@ class Env():
         """
         action= self.id2action[action]
         if action == "remove_word":
+            self.remove_word_counter+=1
             if len(self.generated_sentence_so_far())<=2:
                 self.reward-=1
                 return
             self.remove_word()
            
         if action== "add_word":
+            self.add_word_counter+=1
             self.add_word()
             
         if action == "replace word":
+            self.replace_word_counter+=1
             self.remove_word()
             self.add_word()
  
@@ -219,15 +226,28 @@ class Env():
         # print(simulated_sentence)
         # print("simulated_sentence",self.tokenizer.decode(simulated_input_id, skip_special_tokens = True))
         if termination is False:
-            self.reward= self.get_reward(self.input_sentence,simulated_sentence,weight_vec=[1,1,0.001,1])
+            self.reward= self.get_reward(self.input_sentence,simulated_sentence,weight_vec=[1,1,0.001,1],action=action)
         else:
             print("in termination")
-            self.reward= self.get_reward(self.target_sentence,simulated_sentence,weight_vec=[1,1,0.001,1])
+            self.reward= self.get_reward(self.target_sentence,simulated_sentence,weight_vec=[1,1,0.001,1],action=action)
 
         return next_state,self.reward,termination
 
 
 
-    def get_reward(self,target,decoded,weight_vec):
-        s = np.array(self.classifier.get_scores(target,decoded))
-        return s.dot(weight_vec)
+    def get_reward(self,target,decoded,weight_vec,action):
+        # print("action is",action)
+        reward = np.array(self.classifier.get_scores(target,decoded))
+        reward= reward.dot(weight_vec)
+        ## adding word
+        if action == 0:
+            reward*=2
+        ## removing or replacing
+        if (action == 1 or action == 2) and len(self.generated_sentence_so_far())<=2:
+            reward-=1
+        if (self.is_termination()==True):
+            if len(self.generated_sentence_so_far())<=6:
+                reward-=(15-len(self.generated_sentence_so_far()))
+        if self.add_word_counter <= 2*(self.remove_word_counter+self.replace_word_counter):
+            reward-=0.5
+        return reward

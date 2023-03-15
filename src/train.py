@@ -40,6 +40,7 @@ class Trainer():
             epoch_reward=0
             for epoch in tq.tqdm(range(self.max_action_length)):
                 input_sentence,input_vec=state   
+                input_vec=input_vec.to(T.device('cuda:0' if T.cuda.is_available() else 'cpu'))
                 print("actually summary is: ",output_sentence)
                 print("currently generate is",env.generated_sentence_so_far())
                 input_sentence=self.pretrained_tokenizer(input_sentence,return_tensors='pt',padding='max_length', max_length=80)
@@ -51,7 +52,7 @@ class Trainer():
                     self.agent.update(batch_size)
                 if done or epoch==self.max_action_length-1:
                     print("currently generate is",env.generated_sentence_so_far())
-                    avg_epoch_reward= epoch_reward/epoch
+                    avg_epoch_reward= epoch_reward/(epoch+1)
                     self.epoch_rewards.append(avg_epoch_reward)
                     self.generated_sentences.append(env.generated_sentence_so_far())
                     break

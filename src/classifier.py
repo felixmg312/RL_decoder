@@ -5,7 +5,7 @@ from transformers import pipeline
 from transformers.pipelines.pt_utils import KeyDataset
 from transformers import logging
 import numpy as np
-
+import torch as T
 class Classifier:
     def __init__(self,path):
         self.grammar_model = BertForSequenceClassification.from_pretrained(path)
@@ -55,8 +55,8 @@ class Classifier:
         for i in range(len(target_pred)):
           prob_target.append(target_pred[i]['score'])
           prob_decoded.append(decoded_pred[i]['score'])
-        prob_decoded = torch.tensor(prob_decoded)
-        prob_target = torch.tensor(prob_target)
+        prob_decoded = torch.tensor(prob_decoded).to(T.device('cuda:0' if T.cuda.is_available() else 'cpu'))
+        prob_target = torch.tensor(prob_target).to(T.device('cuda:0' if T.cuda.is_available() else 'cpu'))
 
         target_max_idx = torch.argmax(prob_target, 0, keepdim=True)
         target_one_hot = torch.FloatTensor(prob_target.shape)

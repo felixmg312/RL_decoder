@@ -3,7 +3,7 @@ from DQN import *
 from env import *
 from torch.utils.tensorboard import SummaryWriter
 import os
-
+import torch as T
 Transition= namedtuple('Transition',('state', 'action', 'next_state', 'reward','termination'))
 class ReplayMemory(object):
     def __init__(self, capacity):
@@ -69,6 +69,7 @@ class DQNAgent:
             action=random.choice(self.action_space)
             print("chosen random action is",self.id2action[action])
             return action
+        input_vec=input_vec.to(T.device('cuda:0' if T.cuda.is_available() else 'cpu'))
         qvals1=self.model1.forward(input_sentence,input_vec)
         qvals2=self.model1.forward(input_sentence,input_vec)
         qvals=(qvals1+qvals2)/2
@@ -114,11 +115,11 @@ class DQNAgent:
         actions = actions.view(actions.size(0), 1)
         terminations = terminations.view(terminations.size(0), 1)
 
-        curr_Q1= self.model1.forward(sentences_state,vectors_state.float()).gather(1,actions)
-        curr_Q2= self.model2.forward(sentences_state,vectors_state.float()).gather(1,actions)
+        curr_Q1= self.model1.forward(sentences_state,vectors_state.float().to(T.device('cuda:0' if T.cuda.is_available() else 'cpu'))).gather(1,actions)
+        curr_Q2= self.model2.forward(sentences_state,vectors_state.float().to(T.device('cuda:0' if T.cuda.is_available() else 'cpu'))).gather(1,actions)
 
-        next_Q1= self.model1.forward(sentences_next_state,vectors_next_state.float())
-        next_Q2= self.model2.forward(sentences_next_state,vectors_next_state.float())
+        next_Q1= self.model1.forward(sentences_next_state,vectors_next_state.float().to(T.device('cuda:0' if T.cuda.is_available() else 'cpu')))
+        next_Q2= self.model2.forward(sentences_next_state,vectors_next_state.float().to(T.device('cuda:0' if T.cuda.is_available() else 'cpu')))
         next_Q= torch.min(
             torch.max(next_Q1,1)[0],
             torch.max(next_Q2,1)[0]

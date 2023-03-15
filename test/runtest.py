@@ -9,6 +9,7 @@ from dataReader import *
 from env import *
 from classifier import *
 from train import *
+from tester import *
 import datasets
 
 ## Dataset
@@ -36,15 +37,15 @@ classifier=Classifier("model/model_save")
 # env= Env(pretrained_model=pretrained_model,pretrained_tokenizer=pretrained_tokenizer,input_sentence=input_sentence,target_sentence=output_sentence,classifier=classifier)
 
 ### Trainer Test
-trainer=Trainer(Env,agent,replay_memory,pretrained_model,pretrained_tokenizer,input_sentences,output_sentences,classifier)
-trainer.train(16)
+# trainer=Trainer(Env,agent,replay_memory,pretrained_model,pretrained_tokenizer,input_sentences,output_sentences,classifier)
+# trainer.train(16)
 
-print(trainer.get_reward())
-print(trainer.get_generated_sentences_so_far())
+# print(trainer.get_reward())
+# print(trainer.get_generated_sentences_so_far())
 
 ## Test Test
 data_reader=Dataset_Reader(data_name="gigaword", test_size=0.1, data_set_size=20000,mode="training")
 input_train,output_train=data_reader.get_training()
 input_test,output_test=data_reader.get_testing()
-test_obj = Test(Env,agent,pretrained_model,pretrained_tokenizer,input_sentences,output_sentences,classifier,max_action_length=50)
+test_obj = Test(Env,agent,pretrained_model,pretrained_tokenizer,classifier,max_action_length=50)
 test_obj.test(input_test,output_test)
