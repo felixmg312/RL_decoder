@@ -7,11 +7,9 @@ from torchmetrics.text.rouge import ROUGEScore
 
 
 class Test():
-    def __init__(self,Env,agent,pretrained_model,pretrained_tokenizer,input_sentences,output_sentences,classifier,max_action_length=50):
+    def __init__(self,Env,agent,pretrained_model,pretrained_tokenizer,classifier,max_action_length=50):
         self.agent=agent
         self.generated_sentences=[]
-        self.input_sentences=input_sentences
-        self.output_sentences=output_sentences
         self.classifer=classifier
         self.pretrained_model=pretrained_model
         self.pretrained_tokenizer=pretrained_tokenizer

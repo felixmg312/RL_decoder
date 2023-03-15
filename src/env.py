@@ -221,6 +221,7 @@ class Env():
         if termination is False:
             self.reward= self.get_reward(self.input_sentence,simulated_sentence,weight_vec=[1,1,0.001,1])
         else:
+            print("in termination")
             self.reward= self.get_reward(self.target_sentence,simulated_sentence,weight_vec=[1,1,0.001,1])
 
         return next_state,self.reward,termination
