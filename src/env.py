@@ -80,6 +80,7 @@ class Env():
         values, idx = torch.topk(logits, k=k, axis=-1)
         # print("value",values, "idx",idx)
         probs= softmax(values)
+        # print("probability is", probs, "idx is", idx)
         return idx, probs
 
     def sample_word(self,idx,probs):
@@ -90,6 +91,7 @@ class Env():
         idx=idx.detach().numpy()
         probs=probs.detach().numpy()
         next_word_id=np.random.choice(idx, p=probs)
+        print("chosen index is", next_word_id)
         return next_word_id
     def get_ids(self,sentence):
         """

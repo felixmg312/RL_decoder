@@ -17,8 +17,8 @@ if __name__ == '__main__':
     input_test,output_test=data_reader.get_testing()
 
     ## Model Initialization
-    model_name = "facebook/bart-base"
-    # model_name = "model/finetuneBart" ##"not working for fine tuned"
+    #model_name = "facebook/bart-base"
+    model_name = "model/finetuneBart" ##"not working for fine tuned"
 
     checkpoint_path1="checkpoints_model1/model_epoch_2200.pt"
     checkpoint_path2="checkpoints_model2/model_epoch_2200.pt"
