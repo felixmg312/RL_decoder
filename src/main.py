@@ -11,26 +11,27 @@ from train import *
 
 
 if __name__ == '__main__':
-
+    ## Get Data
     data_reader=Dataset_Reader(data_name="gigaword", test_size=0.1, data_set_size=20000,mode="training")
     input_train,output_train=data_reader.get_training()
     input_test,output_test=data_reader.get_testing()
-
-    ## Model Initialization
-    #model_name = "facebook/bart-base"
+    ##Initialize pretrained model
     model_name = "model/finetuneBart" 
-
-    checkpoint_path1="checkpoints_model1/model_epoch_2200.pt"
-    checkpoint_path2="checkpoints_model2/model_epoch_2200.pt"
-    # agent.load_model(checkpoint_path1,checkpoint_path2) ## uncomment when u want to load checkpoint
-
     pretrained_model=AutoModelForSeq2SeqLM.from_pretrained(model_name)
     pretrained_tokenizer=AutoTokenizer.from_pretrained(model_name)
 
-    ##Initalizing the constructors
+     ##Initalizing the constructors
     replay_memory= ReplayMemory(100)
     agent=DQNAgent(pretrained_model,pretrained_tokenizer,DQN_with_attention,replay_memory)
     classifier=Classifier("model/model_save")
+    ## Model Initialization
+    #model_name = "facebook/bart-base"
+
+    # checkpoint_path1="checkpoints_model1/model_epoch_11000.pt"
+    # checkpoint_path2="checkpoints_model2/model_epoch_11000.pt"
+    # agent.load_model(checkpoint_path1,checkpoint_path2) ## uncomment when u want to load checkpoint
+   
+   
 
     ### Trainer Test
     trainer=Trainer(Env,agent,replay_memory,pretrained_model,pretrained_tokenizer,input_train,output_train,classifier)

@@ -82,7 +82,7 @@ class Env():
         values, idx = torch.topk(logits, k=k, axis=-1)
         # print("value",values, "idx",idx)
         probs= softmax(values)
-        # print("probability is", probs, "idx is", idx)
+        # print("probability is", probs, "idxa is", idx)
         return idx, probs
 
     def sample_word(self,idx,probs):
@@ -251,8 +251,8 @@ class Env():
                 reward-=5
             # if action == 0:
             #     reward*=2
-            if self.add_word_counter <= (self.remove_word_counter+self.replace_word_counter):
-                reward-=5
+            # if self.add_word_counter <= (self.remove_word_counter+self.replace_word_counter):
+            #     reward-=5
             # if self.action_counter == self.max_action_length:
             #     print("not generating a sentence")
             #     reward -=10

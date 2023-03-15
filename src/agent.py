@@ -46,7 +46,7 @@ class DQNAgent:
         self.pretrained_tokenizer=pretrained_tokenizer
         self.pretrained_model=pretrained_model
         self.id2action={0:"add_word",1:"remove_word",2:"replace_word"}
-        self.max_seq_length=80
+        self.max_seq_length=120
 
         ###Called for tensor board
         self.writer1= SummaryWriter()
@@ -56,6 +56,8 @@ class DQNAgent:
             os.mkdir('checkpoints_model1')
         if not os.path.exists('checkpoints_model2'):
             os.mkdir('checkpoints_model2')
+        self.model1_loss=[]
+        self.model2_loss=[]
         ## 
         self.model1=DQN_with_attention(pretrained_model,self.pretrained_tokenizer)
         self.model2=DQN_with_attention(pretrained_model,self.pretrained_tokenizer)
@@ -136,6 +138,7 @@ class DQNAgent:
     def update(self,batch_size):
         self.epochs+=1
         loss1,loss2=self.compute_loss(batch_size)
+        self.record_loss(loss1=loss1,loss2=loss2,epoch=self.epochs)
         self.writer1.add_scalar('Loss1/train', loss1.item(),self.epochs)
         self.writer2.add_scalar('Loss2/train',loss2.item(),self.epochs)
         self.save_checkpoint(epoch=self.epochs)
@@ -147,10 +150,24 @@ class DQNAgent:
         self.optimizer2.step()
         self.epsilon= self.epsilon - self.eps_dec if self.epsilon >self.eps_min else self.eps_min
         
-        
+    def record_loss(self,loss1,loss2,epoch):
+        """
+        Record loss in txt file
+        """
+        self.model1_loss.append(loss1)
+        self.model2_loss.append(loss2)
+        if epoch % 1000==0:
+            location= "result/"
+            model1_file_name=location+"model_1_loss.txt"
+            model2_file_name= location+'model_2_loss.txt'
+            with open(model1_file_name, "w") as f:
+                f.writelines( "%s\n" % item for item in self.model1_loss)
+
+            with open(model2_file_name, "w") as f:
+                f.writelines( "%s\n" % item for item in self.model2_loss)
     def save_checkpoint(self,epoch):
         """
-        Saving model1 and model2 every 100 epochs
+        Saving model1 and model2 every 1000 epochs
         """
         if epoch % 1000 == 0:
             checkpoint_path1 = os.path.join('checkpoints_model1', f'model_epoch_{epoch}.pt')
