@@ -22,7 +22,7 @@ if __name__ == '__main__':
     checkpoint_path2="checkpoints_model2/model_epoch_2200.pt"
     # agent.load_model(checkpoint_path1,checkpoint_path2) ## uncomment when u want to load checkpoint
 
-    # model_name = "model/checkpoint-16500" "not working for fine tuned"
+    # model_name = "model/checkpoint-16500" ##"not working for fine tuned"
     pretrained_model=AutoModelForSeq2SeqLM.from_pretrained(model_name)
     pretrained_tokenizer=AutoTokenizer.from_pretrained(model_name)
 
@@ -40,11 +40,4 @@ if __name__ == '__main__':
     print(trainer.get_generated_sentences_so_far())
     average_rewards=trainer.get_reward()
     generated_sentences=trainer.get_generated_sentences_so_far()
-    with open("result/average_rewards.txt", "w") as f:
-        f.writelines( "%s\n" % item for item in average_rewards)
-
-    with open('result/generated_sequences.txt', 'w') as f:
-        # iterate over the list and write each element to a new line
-        for item in generated_sentences:
-            f.write(f"{item}\n")
     trainer.write_result()

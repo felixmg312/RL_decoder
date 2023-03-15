@@ -65,5 +65,5 @@ class Classifier:
         scores.append(- self.loss(prob_decoded,target_one_hot).item())
       grammar_decoded = self.grammar_pred(decoded)
       scores.append(-np.log(grammar_decoded[0,0].item()))
-      # print("the score is:",scores)
+      print("the score is:",scores)
       return scores

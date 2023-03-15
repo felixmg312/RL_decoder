@@ -25,13 +25,14 @@ class Test():
             for epoch in tq.tqdm(range(self.max_action_length)):    
                 input_sentence,input_vec=state
                 input_sentence=self.pretrained_tokenizer(input_sentence,return_tensors='pt',padding='max_length', max_length=80)
-                action=self.agent.get_action(input_sentence,input_vec,test=True)
+                action=self.agent.get_action(input_sentence,input_vec.float(),test=True)
                 next_state,_,done=env.step(action)
                 if done or epoch==self.max_action_length-1:
                     # print("currently generate is",env.generated_sentence_so_far())
                     sentence_generated=env.generated_sentence_so_far()
                     self.generated_sentences.append(sentence_generated)
                     rouge_score=self.rouge_score(sentence_generated,output_sentence)
+                    print(rouge_score)
                     self.rogue_scores.append(rouge_score)
                     break
                 state=next_state
