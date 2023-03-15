@@ -41,7 +41,7 @@ class Trainer():
             for epoch in tq.tqdm(range(self.max_action_length)):
                 input_sentence,input_vec=state    
                 input_sentence=self.pretrained_tokenizer(input_sentence,return_tensors='pt',padding='max_length', max_length=80)
-
+                print("sentence",self.sentence_counter,"state is: ",input_sentence,input_vec)
                 action=self.agent.get_action(input_sentence,input_vec.float())
                 next_state,reward,done=env.step(action)
                 self.agent.replay_buffer.push(state, action, next_state,reward, done)
