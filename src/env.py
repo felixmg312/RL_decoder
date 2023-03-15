@@ -91,7 +91,7 @@ class Env():
         idx=idx.detach().numpy()
         probs=probs.detach().numpy()
         next_word_id=np.random.choice(idx, p=probs)
-        print("chosen index is", next_word_id)
+        # print("chosen index is", next_word_id)
         return next_word_id
     def get_ids(self,sentence):
         """
@@ -116,16 +116,19 @@ class Env():
         """
         self.decoder_input_ids=self.decoder_input_ids[0][:-1].unsqueeze(0)
         
-    def add_word(self,k=30):
+    def add_word(self,k=30,is_rollout=False):
         """
         Choose a word according to top k and update the current decoder input ids
         """
         idx,probs=self.get_top_k(k)
         decoder_idx_chosen=self.sample_word(idx,probs)
-        if decoder_idx_chosen==self.eos_token_id:
+        if decoder_idx_chosen==self.eos_token_id and is_rollout==False:
             self.done=True
         next_decoder_input_ids = torch.tensor([[decoder_idx_chosen]])
         self.decoder_input_ids = torch.cat([self.decoder_input_ids, next_decoder_input_ids], axis=-1)
+        if decoder_idx_chosen==self.eos_token_id and is_rollout==True:
+            return True
+        return False
     def update_state(self,action):
         """
         action: add_word, remove_word, replace_word
@@ -152,11 +155,14 @@ class Env():
         """
         use top k for rollout
         """
+        is_rollout_done=False
         current_decoded_input_id=self.decoder_input_ids
-        while self.done==False:
-            for _ in range(max_length):
-                self.add_word(k=2000)
-            break
+        count=0
+        while is_rollout_done==False and count< max_length:
+            is_rollout_done=self.add_word(k=2000,is_rollout=True)
+            if(is_rollout_done==True):
+                break
+            count+=1
         rollout_decoded_input_id=self.decoder_input_ids
         self.decoder_input_ids= current_decoded_input_id
         return rollout_decoded_input_id
