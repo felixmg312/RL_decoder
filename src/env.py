@@ -146,8 +146,8 @@ class Env():
            
         if action== "add_word":
             self.add_word_counter+=1
-            for _ in range(3):
-                self.add_word()
+            self.add_word()
+            self.add_word()
 
             
         if action == "replace word":

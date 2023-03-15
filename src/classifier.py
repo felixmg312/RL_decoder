@@ -44,9 +44,13 @@ class Classifier:
         return self.pipes[2](sent)
     
     def sentence_mover_distance(self,generated_sentence,base_line_sentence,target_sentence):
+        """
+        Expect all 3 inputs to be a sentence string object, returns baseline_distance and generated_distance
+        """
         target_sentence = target_sentence.lower().split()
         base_line_sentence= base_line_sentence.lower().split()
-        # print(generated_sentence,base_line_sentence, target_sentence)
+        generated_sentence= generated_sentence.lower().split()
+        print(generated_sentence,base_line_sentence, target_sentence)
 
         # generated_sentence = [w for w in generated_sentence if w not in self.stopwords]
         # target_sentence = [w for w in target_sentence if w not in self.stopwords]
