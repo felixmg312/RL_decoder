@@ -131,8 +131,8 @@ class DQNAgent:
         expected_Q= rewards+ self.gamma*(1-terminations)*next_Q
 
         
-        loss1= F.huber_loss(curr_Q1, expected_Q.detach())
-        loss2= F.huber_loss(curr_Q2, expected_Q.detach())
+        loss1= F.huber_loss(curr_Q1.to(T.device('cuda:0' if T.cuda.is_available() else 'cpu')), expected_Q.detach().to(T.device('cuda:0' if T.cuda.is_available() else 'cpu')))
+        loss2= F.huber_loss(curr_Q2.to(T.device('cuda:0' if T.cuda.is_available() else 'cpu')), expected_Q.detach().to(T.device('cuda:0' if T.cuda.is_available() else 'cpu')))
         print(loss1,loss2)
         return loss1,loss2
     def update(self,batch_size):

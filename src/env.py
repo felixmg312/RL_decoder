@@ -38,7 +38,7 @@ class Env():
         self.input_ids = self.get_ids(input_sentence).to(T.device('cuda:0' if T.cuda.is_available() else 'cpu')) ## tokenized the input sentence
         self.decoder_input_ids = torch.tensor([[self.model.config.decoder_start_token_id]]).to(T.device('cuda:0' if T.cuda.is_available() else 'cpu')) ## id for start token
         self.next_state = self.model(self.input_ids, decoder_input_ids= self.decoder_input_ids, return_dict=True)
-        self.last_hidden_encoder_state = (self.next_state.encoder_last_hidden_state,) ## the hidden state
+        self.last_hidden_encoder_state = (self.next_state.encoder_last_hidden_state.to(T.device('cuda:0' if T.cuda.is_available() else 'cpu')),) ## the hidden state
         self.eos_token_id = self.model.config.eos_token_id
         self.id2action={0:"add_word",1:"remove_word",2:"replace_word"}
         self.reward=0
