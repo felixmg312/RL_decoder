@@ -116,6 +116,7 @@ class DQNAgent:
         """
         actions = actions.view(actions.size(0), 1)
         terminations = terminations.view(terminations.size(0), 1)
+        rewards= rewards.unsqueeze(1)
 
         curr_Q1= self.model1.forward(sentences_state,vectors_state.float().to(T.device('cuda:0' if T.cuda.is_available() else 'cpu'))).gather(1,actions)
         curr_Q2= self.model2.forward(sentences_state,vectors_state.float().to(T.device('cuda:0' if T.cuda.is_available() else 'cpu'))).gather(1,actions)

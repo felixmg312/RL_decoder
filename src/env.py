@@ -126,8 +126,8 @@ class Env():
         decoder_idx_chosen=self.sample_word(idx,probs)
         if decoder_idx_chosen==self.eos_token_id and is_rollout==False:
             self.done=True
-        next_decoder_input_ids = torch.tensor([[decoder_idx_chosen]])
-        self.decoder_input_ids = torch.cat([self.decoder_input_ids, next_decoder_input_ids], axis=-1)
+        next_decoder_input_ids = torch.tensor([[decoder_idx_chosen]]).to(T.device('cuda:0' if T.cuda.is_available() else 'cpu'))
+        self.decoder_input_ids = torch.cat([self.decoder_input_ids, next_decoder_input_ids], axis=-1).to(T.device('cuda:0' if T.cuda.is_available() else 'cpu'))
         if decoder_idx_chosen==self.eos_token_id and is_rollout==True:
             return True
         return False
